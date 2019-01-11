@@ -39,4 +39,15 @@ function calculate() {
   return rankings;
 }
 
-module.exports = calculate;
+function sendRankHtml() {
+  const rankings = calculate();
+  let response = "<html>";
+  Object.keys(rankings).forEach(ranking => {
+    response += `<h1>${ranking}: ${rankings[ranking]}</h1>`;
+  });
+
+  response += "</html>";
+  return response;
+}
+
+module.exports = sendRankHtml;
