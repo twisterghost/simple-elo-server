@@ -39,11 +39,16 @@ function calculate() {
   return rankings;
 }
 
+function asOrderedTuples(rankings) {
+  const asTuples = Object.keys(rankings).map(player => ({player, elo: rankings[player]}));
+  return asTuples.sort((a, b) => b.elo - a.elo);
+}
+
 function sendRankHtml() {
-  const rankings = calculate();
+  const rankings = asOrderedTuples(calculate());
   let response = "<html>";
-  Object.keys(rankings).forEach(ranking => {
-    response += `<h1>${ranking}: ${rankings[ranking]}</h1>`;
+  rankings.forEach(ranking => {
+    response += `<h1>${ranking.player}: ${ranking.elo}</h1>`;
   });
 
   response += "</html>";
