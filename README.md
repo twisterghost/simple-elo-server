@@ -1,6 +1,6 @@
 # Simple Elo Server
 
-Displays the computed elo of players given a list of player and a list of game outcomes.
+Displays the computed elo of players given a list of players and a list of game outcomes.
 
 ## Setup
 
@@ -37,3 +37,5 @@ Then, populate two json files:
 ## Run
 
 `npm start`
+
+It will serve on port 3000 using [micro](https://github.com/zeit/micro)
