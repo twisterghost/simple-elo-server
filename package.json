@@ -1,15 +1,16 @@
 {
-  "name": "elo",
+  "name": "simple-elo-tracker",
   "version": "1.0.0",
   "description": "",
   "main": "elocalc.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "micro elocalc.js"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
-    "elo-rank": "^1.0.3"
+    "elo-rank": "1.0.3",
+    "micro": "^9.3.3"
   }
 }
