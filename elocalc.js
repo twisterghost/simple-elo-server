@@ -53,14 +53,23 @@ function calculate() {
     rankings[player] = DEFAULT_ELO;
   });
 
-  gameList.forEach(game => {
-    const [playerA, playerB] = Object.keys(game);
-    const playerAScore = rankings[playerA];
-    const playerBScore = rankings[playerB];
-    const expectedScoreA = elo.getExpected(playerAScore, playerBScore);
-    const expectedScoreB = elo.getExpected(playerBScore, playerAScore);
-    rankings[playerA] = elo.updateRating(expectedScoreA, game[playerA], playerAScore);
-    rankings[playerB] = elo.updateRating(expectedScoreB, game[playerB], playerBScore);
+  // Extract all the completed games
+  const finishedGames = gameList.filter(game => {
+    return !!(game.winner && game.endDate);
+  });
+
+  // Loop through completed games to update rankings
+  finishedGames.forEach(game => {
+    // Loop through each player in the game
+    game.players.forEach((player, idx) => {
+      // TODO: If we support more than 2 players in a game, then we'll need to update this logic, but elo should support it
+      const otherIdx = 1 - idx; // Trick to get the opposite index of the current one (1 -> 0 | 0 -> 1)
+      const otherPlyr = game.players[otherIdx];
+      const prevRating = rankings[player];
+      const expectedScore = elo.getExpected(prevRating, rankings[otherPlyr]);
+      const actualScore = (game.winner === player) ? 1 : 0;
+      rankings[player] = elo.updateRating(expectedScore, actualScore, prevRating);
+    });
   });
 
   return rankings;
