@@ -6,6 +6,7 @@ const { router, get, post } = require('microrouter');
 const EloRank = require('elo-rank');
 const elo = new EloRank(25);
 const DEFAULT_ELO = 1000;
+const moment = require('moment');
 
 const NAME_REGEX = /^[a-zA-Z][a-zA-Z_]{1,29}$/;
 
@@ -56,6 +57,10 @@ function calculate() {
   // Extract all the completed games
   const finishedGames = gameList.filter(game => {
     return !!(game.winner && game.endDate);
+  });
+  // Sort by date the game ended
+  finishedGames.sort((a, b) => {
+    return (+moment(a.endDate, 'M/D/YYYY')) - (+moment(b.endDate, 'M/D/YYYY'));
   });
 
   // Loop through completed games to update rankings
