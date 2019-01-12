@@ -10,12 +10,15 @@ const DEFAULT_ELO = 1000;
 const NAME_REGEX = /^[a-zA-Z][a-zA-Z_]{1,29}$/;
 
 // players.json is a json array of strings representing unique player names
-// games.json is an array of tuple objects containing player names as keys and 1 or 0 as values
-// where 1 denotes the victorious player and 0 denotes the losing player
+// games.json is an array of tuple objects representing completed and active games
+// with an array of player-ids representing participating players, start + end dates
+// and a "winner" field to indicate the id of the winner
 /* ...
  * {
- *   "someone": 1,
- *   "someoneElse": 0
+ *   "players": [1, 2],
+ *   "startDate": "1/1/19",
+ *   "endDate": "1/2/19",
+ *   "winner": 1
  * }
  * ...
  */
