@@ -28,14 +28,14 @@ Then, populate two json files:
 [
   // Completed Game
   {
-    players: [1, 2],
+    players: ["someone", "somoneElse"],
     startDate: "1/1/2019",
     endDate: "1/2/2019",
-    winner: 1
+    winner: "someoneElse"
   },
   // Active Game
   {
-    players: [2, 3],
+    players: ["somebody", "somebodyElse"],
     startDate: "1/1/2019"
   }
   ...

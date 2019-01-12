@@ -15,10 +15,10 @@ const NAME_REGEX = /^[a-zA-Z][a-zA-Z_]{1,29}$/;
 // and a "winner" field to indicate the id of the winner
 /* ...
  * {
- *   "players": [1, 2],
+ *   "players": ["someone", "someoneElse"],
  *   "startDate": "1/1/19",
  *   "endDate": "1/2/19",
- *   "winner": 1
+ *   "winner": "someone"
  * }
  * ...
  */
