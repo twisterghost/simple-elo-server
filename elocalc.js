@@ -7,6 +7,7 @@ const EloRank = require('elo-rank');
 const elo = new EloRank(25);
 const DEFAULT_ELO = 1000;
 const moment = require('moment');
+const DATE_FORMAT = 'M/D/YYYY';
 
 const NAME_REGEX = /^[a-zA-Z][a-zA-Z_]{1,29}$/;
 
@@ -60,7 +61,7 @@ function calculate() {
   });
   // Sort by date the game ended
   finishedGames.sort((a, b) => {
-    return (+moment(a.endDate, 'M/D/YYYY')) - (+moment(b.endDate, 'M/D/YYYY'));
+    return (+moment(a.endDate, DATE_FORMAT)) - (+moment(b.endDate, DATE_FORMAT));
   });
 
   // Loop through completed games to update rankings
@@ -122,13 +123,15 @@ function addResultForm() {
 
 async function addResult(req, res) {
   const { winner, loser } = await parse(req);
-  if (!playerList.includes(winner) || !playerList.includes(loser) || winnet == loser) {
+  if (!playerList.includes(winner) || !playerList.includes(loser) || winner == loser) {
     return send(res, 400, `Invalid game result (winner: ${winner}, loser: ${loser})`);
   }
 
   gameList.push({
-    [winner]: 1,
-    [loser]: 0,
+    players: [winner, loser],
+    startDate: moment().format(DATE_FORMAT),
+    endDate: moment().format(DATE_FORMAT),
+    winner: winner
   });
   save();
   return `<html>Added game result with winner of ${winner} and loser of ${loser}. <a href="/addResult">Add another?</a></html>`;
