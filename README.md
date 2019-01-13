@@ -26,9 +26,17 @@ Then, populate two json files:
 
 ```json
 [
+  // Completed Game
   {
-    "winningPlayer": 1,
-    "losingPlayer": 2
+    players: ["someone", "somoneElse"],
+    startDate: "1/1/2019",
+    endDate: "1/2/2019",
+    winner: "someoneElse"
+  },
+  // Active Game
+  {
+    players: ["somebody", "somebodyElse"],
+    startDate: "1/1/2019"
   }
   ...
 ]

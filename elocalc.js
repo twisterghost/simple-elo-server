@@ -6,16 +6,21 @@ const { router, get, post } = require('microrouter');
 const EloRank = require('elo-rank');
 const elo = new EloRank(25);
 const DEFAULT_ELO = 1000;
+const moment = require('moment');
+const DATE_FORMAT = 'M/D/YYYY';
 
 const NAME_REGEX = /^[a-zA-Z][a-zA-Z_]{1,29}$/;
 
 // players.json is a json array of strings representing unique player names
-// games.json is an array of tuple objects containing player names as keys and 1 or 0 as values
-// where 1 denotes the victorious player and 0 denotes the losing player
+// games.json is an array of tuple objects representing completed and active games
+// with an array of player-ids representing participating players, start + end dates
+// and a "winner" field to indicate the id of the winner
 /* ...
  * {
- *   "someone": 1,
- *   "someoneElse": 0
+ *   "players": ["someone", "someoneElse"],
+ *   "startDate": "1/1/19",
+ *   "endDate": "1/2/19",
+ *   "winner": "someone"
  * }
  * ...
  */
@@ -50,14 +55,27 @@ function calculate() {
     rankings[player] = DEFAULT_ELO;
   });
 
-  gameList.forEach(game => {
-    const [playerA, playerB] = Object.keys(game);
-    const playerAScore = rankings[playerA];
-    const playerBScore = rankings[playerB];
-    const expectedScoreA = elo.getExpected(playerAScore, playerBScore);
-    const expectedScoreB = elo.getExpected(playerBScore, playerAScore);
-    rankings[playerA] = elo.updateRating(expectedScoreA, game[playerA], playerAScore);
-    rankings[playerB] = elo.updateRating(expectedScoreB, game[playerB], playerBScore);
+  // Extract all the completed games
+  const finishedGames = gameList.filter(game => {
+    return !!(game.winner && game.endDate);
+  });
+  // Sort by date the game ended
+  finishedGames.sort((a, b) => {
+    return (+moment(a.endDate, DATE_FORMAT)) - (+moment(b.endDate, DATE_FORMAT));
+  });
+
+  // Loop through completed games to update rankings
+  finishedGames.forEach(game => {
+    // Loop through each player in the game
+    game.players.forEach((player, idx) => {
+      // TODO: If we support more than 2 players in a game, then we'll need to update this logic, but elo should support it
+      const otherIdx = 1 - idx; // Trick to get the opposite index of the current one (1 -> 0 | 0 -> 1)
+      const otherPlyr = game.players[otherIdx];
+      const prevRating = rankings[player];
+      const expectedScore = elo.getExpected(prevRating, rankings[otherPlyr]);
+      const actualScore = (game.winner === player) ? 1 : 0;
+      rankings[player] = elo.updateRating(expectedScore, actualScore, prevRating);
+    });
   });
 
   return rankings;
@@ -105,13 +123,15 @@ function addResultForm() {
 
 async function addResult(req, res) {
   const { winner, loser } = await parse(req);
-  if (!playerList.includes(winner) || !playerList.includes(loser) || winnet == loser) {
+  if (!playerList.includes(winner) || !playerList.includes(loser) || winner == loser) {
     return send(res, 400, `Invalid game result (winner: ${winner}, loser: ${loser})`);
   }
 
   gameList.push({
-    [winner]: 1,
-    [loser]: 0,
+    players: [winner, loser],
+    startDate: moment().format(DATE_FORMAT),
+    endDate: moment().format(DATE_FORMAT),
+    winner: winner
   });
   save();
   return `<html>Added game result with winner of ${winner} and loser of ${loser}. <a href="/addResult">Add another?</a></html>`;
