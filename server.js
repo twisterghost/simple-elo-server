@@ -4,6 +4,7 @@ const { send } = require('micro');
 const parse = require('urlencoded-body-parser');
 const { router, get, post } = require('microrouter');
 const EloRank = require('elo-rank');
+
 const elo = new EloRank(25);
 const DEFAULT_ELO = 1000;
 const moment = require('moment');
@@ -51,32 +52,34 @@ function save() {
   fs.writeFileSync('./players.json', JSON.stringify(playerList), 'utf8');
 }
 
+function dateSort(a, b) {
+  return (+moment(a.endDate, DATE_FORMAT)) - (+moment(b.endDate, DATE_FORMAT));
+}
+
 /**
  * Calculates elo ranks from scratch using the current data
  * @returns {object} key-value pairs of player names to elo rank
  */
 function calculate() {
-
-  const rankings = {}
-  playerList.forEach(player => {
+  const rankings = {};
+  playerList.forEach((player) => {
     rankings[player] = DEFAULT_ELO;
   });
 
   // Extract all the completed games
-  const finishedGames = gameList.filter(game => {
-    return !!(game.winner && game.endDate);
-  });
+  const finishedGames = gameList.filter(game => !!(game.winner && game.endDate));
   // Sort by date the game ended
-  finishedGames.sort((a, b) => {
-    return (+moment(a.endDate, DATE_FORMAT)) - (+moment(b.endDate, DATE_FORMAT));
-  });
+  finishedGames.sort(dateSort);
 
   // Loop through completed games to update rankings
-  finishedGames.forEach(game => {
+  finishedGames.forEach((game) => {
     // Loop through each player in the game
     game.players.forEach((player, idx) => {
-      // TODO: If we support more than 2 players in a game, then we'll need to update this logic, but elo should support it
-      const otherIdx = 1 - idx; // Trick to get the opposite index of the current one (1 -> 0 | 0 -> 1)
+      // TODO: If we support more than 2 players in a game, then we'll need to
+      // update this logic, but elo should support it
+
+      // Trick to get the opposite index of the current one (1 -> 0 | 0 -> 1)
+      const otherIdx = 1 - idx;
       const otherPlayer = game.players[otherIdx];
       const prevRating = rankings[player];
       const expectedScore = elo.getExpected(prevRating, rankings[otherPlayer]);
@@ -94,7 +97,7 @@ function calculate() {
  * @returns {orderedRanks} A list of objects containing player name and elo in order of elo
  */
 function asOrderedTuples(rankings) {
-  const asTuples = Object.keys(rankings).map(player => ({player, elo: rankings[player]}));
+  const asTuples = Object.keys(rankings).map(player => ({ player, elo: rankings[player] }));
   return asTuples.sort((a, b) => b.elo - a.elo);
 }
 
@@ -104,12 +107,13 @@ function asOrderedTuples(rankings) {
  */
 function sendRankHtml() {
   const rankings = asOrderedTuples(calculate());
-  let response = '<html><a href="/addPlayer">Add Player</a> - <a href="/addResult">Add Result</a><br />'
-  rankings.forEach(ranking => {
+  let response = '<html><a href="/addPlayer">Add Player</a> '
+    + '<a href="/addResult">Add Result</a><br />';
+  rankings.forEach((ranking) => {
     response += `<h1>${ranking.player}: ${ranking.elo}</h1>`;
   });
 
-  response += "</html>";
+  response += '</html>';
   return response;
 }
 
@@ -118,9 +122,7 @@ function sendRankHtml() {
  * @returns {string}
  */
 function addResultForm() {
-  const playerOptions = playerList.map(player => {
-    return `<option>${player}</option>`;
-  });
+  const playerOptions = playerList.map(player => `<option>${player}</option>`);
 
   const winnerSelect = `<select name="winner">${playerOptions}</select>`;
   const loserSelect = `<select name="loser">${playerOptions}</select>`;
@@ -150,7 +152,7 @@ function addResultForm() {
  */
 async function addResult(req, res) {
   const { winner, loser } = await parse(req);
-  if (!playerList.includes(winner) || !playerList.includes(loser) || winner == loser) {
+  if (!playerList.includes(winner) || !playerList.includes(loser) || winner === loser) {
     return send(res, 400, `Invalid game result (winner: ${winner}, loser: ${loser})`);
   }
 
@@ -194,9 +196,11 @@ async function addPlayer(req) {
     playerList = _.uniq(playerList.concat(player));
     save();
     return `<html>Added ${player}. <a href="/addPlayer">Add another</a> or <a href="/">view rankings</a></html>`;
-  } else {
-    return `<html>Player "${player}" not added - names must be letters and underscores only (starting with a letter) and between 1 and 30 characters. <a href="/addPlayer">Try Again?</a></html>`;
   }
+
+  return `<html>Player "${player}" not added - names must be letters and
+    underscores only (starting with a letter) and between 1 and 30 characters.
+    <a href="/addPlayer">Try Again?</a></html>`;
 }
 
 module.exports = router(
@@ -204,5 +208,5 @@ module.exports = router(
   post('/addResult', addResult),
   get('/addPlayer', addPlayerForm),
   get('/addResult', addResultForm),
-  get('/', sendRankHtml)
+  get('/', sendRankHtml),
 );
