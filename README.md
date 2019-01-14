@@ -23,3 +23,11 @@ It will serve on port 3000 using [micro](https://github.com/zeit/micro)
   * Add a player to the system
 * `/addResult`
   * Add a game result to the system
+
+## Developing
+
+You can use the `npm run dev` script to leverage `micro-dev` when hacking on the server.
+
+To lint, run `npm run lint`
+
+This project uses the AirBnb styleguide
